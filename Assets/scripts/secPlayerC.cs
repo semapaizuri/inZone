@@ -259,6 +259,8 @@ public class secPlayerC : MonoBehaviour
                     p2points += addPoints;
                     p2PointC.text = p2points.ToString();
                     swishS.Play();
+                    roundSystem.Winner = 2;
+                    roundSystem.RoundEnd = true;
                 }
                 ball.GetComponent<Rigidbody>().isKinematic = false;
                 powerBar.SetActive(false);

@@ -282,6 +282,8 @@ public class atPlayerC : MonoBehaviour
                     p1points += addPoints;
                     p1PointC.text = p1points.ToString();
                     swishS.Play();
+                    roundSystem.Winner = 1;
+                    roundSystem.RoundEnd = true;
                 }
                 ball.GetComponent<Rigidbody>().isKinematic = false;
                 powerBar.SetActive(false);
