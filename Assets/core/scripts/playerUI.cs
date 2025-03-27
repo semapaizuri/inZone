@@ -5,7 +5,7 @@ using UnityEngine;
 public class playerUI : MonoBehaviour
 {
 
-    public Transform camera;
+    public Transform cameraTransform;
     
 
     // Start is called before the first frame update
@@ -17,6 +17,6 @@ public class playerUI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.rotation = Quaternion.LookRotation(transform.position - camera.transform.position);
+        transform.rotation = Quaternion.LookRotation(transform.position - cameraTransform.transform.position);
     }
 }

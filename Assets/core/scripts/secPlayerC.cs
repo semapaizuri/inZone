@@ -1,12 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Xml.Serialization;
 using TMPro;
-using TMPro.Examples;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class atPlayerC : MonoBehaviour
+public class secPlayerC : MonoBehaviour
 {
 
     public Transform enemy;
@@ -23,10 +21,9 @@ public class atPlayerC : MonoBehaviour
     public Transform LdribblePos;
     public Transform attPos;
     public Transform defPos;
-    private Transform p1StartPos;
+    private Transform p2StartPos;
 
     public GameObject powerBar;
-    public GameObject rig;
 
     public AudioSource catchingS;
     public AudioSource throwS;
@@ -34,60 +31,83 @@ public class atPlayerC : MonoBehaviour
 
     private Rigidbody rbBall;
     private Rigidbody rb;
-    private Collider mainCol;
     private Collider colBall;
     float dirX, dirY;
 
     public float dribSpeed;
     public float moveSpeed;
     float T = 0f;
-    public float p1points = 0;
+    public float p2points = 0;
     float addPoints = 0;
     int LorR;
     int SorM;
 
-    public bool ballInDrib = false;
-    public bool ballRight = true;
-    public bool ballLeft = false;
-    public bool spacePressed = false;
+    public bool altPressed = false;
     public bool inZone;
     public bool blocked;
     public bool isBlocking;
-    public bool fallen;
     bool blockedShot;
     bool staminaDecreasing;
-    
-    bool ballIn1Hands = true;
+
+    bool ballIn2Hands = false;
     bool ballFlying = false;
     bool ballEnemy = true;
 
     public float stamina;
     float maxStamina;
-    
+
     public float power;
     float maxPower = 100;
     bool powerIncreasing = true;
     bool powerBarON = false;
 
-    public TextMeshProUGUI p1PointC;
+    public TextMeshProUGUI p2PointC;
     public Slider staminaBar;
     public Slider throwBar;
     public float dValue;
 
+
     void Start()
     {
-        colBall = ball.GetComponent<Collider> ();
+
+        colBall = ball.GetComponent<Collider>();
         rbBall = ball.GetComponent<Rigidbody>();
-        mainCol = GetComponent<CapsuleCollider>();
         rb = GetComponent<Rigidbody>();
         Physics.gravity = new Vector3(0, -15, 0);
         maxStamina = stamina;
         staminaBar.maxValue = maxStamina;
         powerBar.SetActive(false);
-        GetRagdollComps();
-        RagdollOff();
-        p1StartPos = attPos;
-        transform.position = new Vector3(p1StartPos.position.x, p1StartPos.position.y,p1StartPos.position.z);
+        p2StartPos = defPos;
+        transform.position = new Vector3(p2StartPos.position.x, p2StartPos.position.y, p2StartPos.position.z);
+    }
+
+    void Update()
+    {
+        if (ballFlying == false && ballIn2Hands == false && rbBall.constraints != RigidbodyConstraints.None)
+        {
+            ballEnemy = true;
+        }
+        else
+        {
+            ballEnemy = false;
+        }
+
+        Blocking();
+
+        Looking();
+
+        Movement();
+
+        Sprint();
+
+        Ballin();
+
+        BallFlying();
+    }
+
+    private void FixedUpdate()
+    {
+        rb.linearVelocity = new Vector3(dirX, 0, dirY).normalized;
     }
 
     IEnumerator UpdatePowerBar()
@@ -110,28 +130,20 @@ public class atPlayerC : MonoBehaviour
                     powerIncreasing = true;
                 }
             }
-            
+
             throwBar.value = power;
             yield return new WaitForSeconds(0.02f);
         }
         yield return null;
     }
 
-    IEnumerator Lying()
-    {
-        yield return new WaitForSeconds(3f);
-        RagdollOff();
-        yield return null;
-    }
 
-    // Update is called once per frame
-    void Update()
+    private void Blocking()
     {
-        blocked = blockChecker1.blocked1;
-        isBlocking = blockChecker2.blocked2;
+        blocked = blockChecker2.blocked2;
+        isBlocking = blockChecker1.blocked1;
 
-        //blocking stand
-        if (isBlocking && !ballIn1Hands && !ballFlying)
+        if (isBlocking && !ballIn2Hands && !ballFlying)
         {
             lHand.localEulerAngles = Vector3.forward * -80;
             rHand.localEulerAngles = Vector3.forward * 80;
@@ -141,13 +153,15 @@ public class atPlayerC : MonoBehaviour
             lHand.localEulerAngles = Vector3.forward * 0;
             rHand.localEulerAngles = Vector3.forward * 0;
         }
+    }
 
-        //looking
-        if (ballIn1Hands)
+    private void Looking()
+    {
+        if (ballIn2Hands)
         {
             transform.LookAt(new Vector3(hoop.position.x, transform.position.y, hoop.position.z));
         }
-        else if (ballIn1Hands == false && ballEnemy == true)
+        else if (ballIn2Hands == false && ballEnemy == true)
         {
             transform.LookAt(new Vector3(enemy.position.x, transform.position.y, enemy.position.z));
         }
@@ -155,32 +169,16 @@ public class atPlayerC : MonoBehaviour
         {
             transform.LookAt(new Vector3(ball.position.x, transform.position.y, ball.position.z));
         }
+    }
 
-        Movement();
-
-        Sprint();
-
-        if (stamina <= 0)
-        {
-            //RagdollOn();
-            //StartCoroutine(Lying());
-        }
-
-        if (ballFlying == false && ballIn1Hands == false && rbBall.constraints != RigidbodyConstraints.None)
-        {
-            ballEnemy = true;
-        }
-        else
-        {
-            ballEnemy = false;
-        }
-
-        if (ballIn1Hands)
+    private void Ballin()
+    {
+        if (ballIn2Hands)
         {
             colBall.isTrigger = true;
             rbBall.constraints = RigidbodyConstraints.FreezePosition;
-            //pressing space
-            if (Input.GetKeyDown(KeyCode.Space))
+            //pressing alt
+            if (Input.GetKeyDown(KeyCode.RightAlt))
             {
                 power = 1;
                 powerIncreasing = true;
@@ -188,26 +186,21 @@ public class atPlayerC : MonoBehaviour
                 powerBar.SetActive(true);
                 StartCoroutine(UpdatePowerBar());
             }
-            if (Input.GetKey(KeyCode.Space))
+            if (Input.GetKey(KeyCode.RightAlt))
             {
-                spacePressed = true;
+                altPressed = true;
                 ball.position = aboveHeadPos.position;
                 hands.localEulerAngles = Vector3.left * 180;
                 rHand.localEulerAngles = Vector3.left * 0;
                 rHand.localEulerAngles = Vector3.left * 20;
                 moveSpeed = 2;
-                
             }
-            //dribbling
             else
             {
-                ball.position = RdribblePos.position + Vector3.up * Mathf.Abs(Mathf.Sin(Time.time * dribSpeed));
-                rHand.localEulerAngles = Vector3.left * Mathf.Abs(Mathf.Sin(Time.time * dribSpeed)) * 20;
-                
+                //dribbling
             }
-
-            //releasing space
-            if (Input.GetKeyUp(KeyCode.Space))
+            //releasing alt
+            if (Input.GetKeyUp(KeyCode.RightAlt))
             {
                 powerBarON = false;
                 throwS.Play();
@@ -215,13 +208,13 @@ public class atPlayerC : MonoBehaviour
                 LorR = Random.Range(0, 2);
                 hands.localEulerAngles = Vector3.left * 0;
                 rHand.localEulerAngles = Vector3.left * 0;
-                spacePressed = false;
+                altPressed = false;
                 ballFlying = true;
-                ballIn1Hands = false;
+                ballIn2Hands = false;
                 T = 0;
                 dribSpeed = 6;
                 moveSpeed = 6;
-                if (inZone)
+                if (inZone == true)
                 {
                     addPoints = 1;
                 }
@@ -241,9 +234,10 @@ public class atPlayerC : MonoBehaviour
                 colBall.isTrigger = false;
             }
         }
+    }
 
-
-        //fly of the ball
+    private void BallFlying()
+    {
         if (ballFlying)
         {
             T += Time.deltaTime;
@@ -279,10 +273,10 @@ public class atPlayerC : MonoBehaviour
                 ballFlying = false;
                 if (B == target.position && !blockedShot)
                 {
-                    p1points += addPoints;
-                    p1PointC.text = p1points.ToString();
+                    p2points += addPoints;
+                    p2PointC.text = p2points.ToString();
                     swishS.Play();
-                    roundSystem.Winner = 1;
+                    roundSystem.Winner = 2;
                     roundSystem.RoundEnd = true;
                 }
                 ball.GetComponent<Rigidbody>().isKinematic = false;
@@ -290,47 +284,64 @@ public class atPlayerC : MonoBehaviour
             }
         }
     }
-
-    private void FixedUpdate()
-    {
-        rb.linearVelocity = new Vector3(dirX, 0, dirY);
-    }
+    
 
     private void Movement()
     {
-        dirX = Input.GetAxisRaw("Horizontal") * moveSpeed;
-        dirY = Input.GetAxisRaw("Vertical") * moveSpeed;
+        
+        if (Input.GetKey(KeyCode.I))
+        {
+            dirY = moveSpeed;
+        }
+        if (Input.GetKey(KeyCode.K))
+        {
+            dirY = -moveSpeed;
+        }
+        if (Input.GetKey(KeyCode.L))
+        {
+            dirX = moveSpeed;
+        }
+        if (Input.GetKey(KeyCode.J))
+        {
+            dirX = -moveSpeed;
+        }
+        else
+        {
+            dirX = 0;
+            dirY = 0;
+        }
+
         if (dirX != 0 && dirY != 0)
         {
-            dirX = dirX / 1.4f;
-            dirY = dirY / 1.4f;
+            dirX /= 1.4f;
+            dirY /= 1.4f;
         }
     }
 
     private void Sprint()
     {
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        if (Input.GetKeyDown(KeyCode.B))
         {
             if (stamina > 0)
             {
-                if (((Input.GetKey(KeyCode.W)) || (Input.GetKey(KeyCode.A)) || (Input.GetKey(KeyCode.S)) || (Input.GetKey(KeyCode.D))) && spacePressed == false)
+                if (((Input.GetKey(KeyCode.I)) || (Input.GetKey(KeyCode.J)) || (Input.GetKey(KeyCode.K)) || (Input.GetKey(KeyCode.L))) && altPressed == false)
                 {
                     stamina -= 2;
                 }
             }
         }
-        if (((Input.GetKeyDown(KeyCode.W)) || (Input.GetKeyDown(KeyCode.A)) || (Input.GetKeyDown(KeyCode.S)) || (Input.GetKeyDown(KeyCode.D))) && (Input.GetKey(KeyCode.LeftShift)) && !staminaDecreasing)
+        if (((Input.GetKeyDown(KeyCode.I)) || (Input.GetKeyDown(KeyCode.J)) || (Input.GetKeyDown(KeyCode.K)) || (Input.GetKeyDown(KeyCode.L))) && (Input.GetKey(KeyCode.B)) && !staminaDecreasing)
         {
             if (stamina > 0)
             {
                 stamina -= 2;
             }
         }
-        if (Input.GetKey(KeyCode.LeftShift))
+        if (Input.GetKey(KeyCode.B))
         {
             if (stamina > 0)
             {
-                if (((Input.GetKey(KeyCode.W)) || (Input.GetKey(KeyCode.A)) || (Input.GetKey(KeyCode.S)) || (Input.GetKey(KeyCode.D))) && spacePressed == false)
+                if (((Input.GetKey(KeyCode.I)) || (Input.GetKey(KeyCode.J)) || (Input.GetKey(KeyCode.K)) || (Input.GetKey(KeyCode.L))) && altPressed == false)
                 {
                     moveSpeed = 12;
                     dribSpeed = 12;
@@ -359,6 +370,7 @@ public class atPlayerC : MonoBehaviour
             moveSpeed = 6;
             if (stamina < maxStamina)
             {
+                
                 IncreaseStam();
                 staminaDecreasing = false;
             }
@@ -367,51 +379,26 @@ public class atPlayerC : MonoBehaviour
         staminaBar.value = stamina;
     }
 
-
-    Collider[] ragdollCols;
-    Rigidbody[] ragdollRigids;
-    void GetRagdollComps()
+    private void DecreaseStam()
     {
-        ragdollCols = rig.GetComponentsInChildren<Collider>();
-        ragdollRigids = rig.GetComponentsInChildren<Rigidbody>();
+        if (stamina != 0)
+        {
+            stamina -= dValue * Time.deltaTime;
+        }
     }
 
-    void RagdollOn()
+    private void IncreaseStam()
     {
-        foreach (Collider col in ragdollCols)
-        {
-            col.enabled = true;
-        }
-        foreach (Rigidbody rigid in ragdollRigids)
-        {
-            rigid.isKinematic = false;
-        }
-        mainCol.enabled = false;
-        rb.isKinematic = true;
-        fallen = true;
+        stamina += dValue / 2 * Time.deltaTime;
     }
 
-    void RagdollOff()
-    {
-        foreach (Collider col in ragdollCols)
-        {
-            col.enabled = false;
-        }
-        foreach (Rigidbody rigid in ragdollRigids)
-        {
-            rigid.isKinematic = true;
-        }
-        mainCol.enabled = true;
-        rb.isKinematic = false;
-        fallen = false;
-    }
-
+    //when we collide the ball
     public void OnCollisionEnter(Collision other)
     {
-        if (other.gameObject.tag == "ballT" && !ballIn1Hands && !ballFlying)
+        if (other.gameObject.tag == "ballT" && !ballIn2Hands && !ballFlying)
         {
+            ballIn2Hands = true;
             catchingS.Play();
-            ballIn1Hands = true;
         }
     }
 
@@ -431,18 +418,5 @@ public class atPlayerC : MonoBehaviour
             inZone = false;
         }
         
-    }
-
-    private void DecreaseStam()
-    {
-        if (stamina != 0)
-        { 
-            stamina -= dValue * Time.deltaTime;
-        }
-    }
-
-    private void IncreaseStam()
-    {
-        stamina += dValue / 2 * Time.deltaTime;
     }
 }
