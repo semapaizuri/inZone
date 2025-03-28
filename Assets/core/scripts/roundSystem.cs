@@ -38,7 +38,7 @@ public class roundSystem : MonoBehaviour
         if (_timerRemain > 0f)
         {
             _timerRemain -= Time.deltaTime;
-            _countDown.text = _timerRemain.ToString();
+            _countDown.text = _timerRemain.ToString("0.0");
         }
         else
         {
