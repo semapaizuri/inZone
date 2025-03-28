@@ -4,10 +4,14 @@ using UnityEngine;
 
 public class ballSc : MonoBehaviour
 {
+    public Transform target;
+    public Transform miss1;
+    public Transform miss2;
 
     public AudioSource groundhitS;
     public AudioSource rimhitS;
     public AudioSource dribbleS;
+    
 
     void Start()
     {

@@ -8,9 +8,16 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 
-public class atPlayerC : MonoBehaviour
+public class PlayerController : MonoBehaviour
 {
-    public PlayersControls controls;
+    //public PlayersControls controls;
+    public InputActionAsset controlsAsset;
+    public string controlMapName;
+    private InputActionMap _controlMap;
+    private InputAction _moveAction;
+    private InputAction _shootAction;
+    private InputAction _sprintAction;
+    
 
     public Transform enemy;
     public Transform target;
@@ -30,25 +37,33 @@ public class atPlayerC : MonoBehaviour
     public GameObject powerBar;
     public GameObject rig;
 
+    public TextMeshProUGUI p1PointC;
+    public Slider staminaBar;
+    public Slider throwBar;
+
     public AudioSource catchingS;
     public AudioSource throwS;
     public AudioSource swishS;
 
-    private Transform p1StartPos;
-    private Rigidbody rbBall;
-    private Rigidbody rb;
-    private Collider mainCol;
-    private Collider colBall;
-    float dirX, dirY;
+    private Rigidbody _rbBall;
+    private Rigidbody _rb;
+    private Collider _colBall;
+    
+    private Vector3 _moveDir = Vector3.zero;
 
     public float dribSpeed;
     public float moveSpeed;
-    private Vector3 moveDir = Vector3.zero;
-    float T = 0f;
+    public float power;
+    public float stamina;
     public float p1points = 0;
-    float addPoints = 0;
-    int LeftOrRight;
-    int ScoreOrMiss;
+    public float dValue;
+
+    private float _maxPower = 100;
+    private float _maxStamina;
+    private float T = 0f;
+    private float _addPoints = 0;
+    private int _leftOrRight;
+    private int _scoreOrMiss;
 
     public bool ballInDrib;
     public bool ballRight = true;
@@ -58,56 +73,55 @@ public class atPlayerC : MonoBehaviour
     public bool blocked;
     public bool isBlocking;
     public bool fallen;
-    bool blockedShot;
-    bool staminaDecreasing;
-    
-    bool ballIn1Hands;
-    bool ballFlying;
-    bool ballEnemy;
 
-    public float stamina;
-    float maxStamina;
-    
-    public float power;
-    float maxPower = 100;
-    bool powerIncreasing = true;
-    bool powerBarON;
-
-    public TextMeshProUGUI p1PointC;
-    public Slider staminaBar;
-    public Slider throwBar;
-    public float dValue;
+    private bool _blockedShot;
+    private bool _staminaDecreasing;
+    private bool _ballInHands;
+    private bool _ballFlying;
+    private bool _ballEnemy;
+    private bool _powerIncreasing = true;
+    private bool _powerBarON;
 
     private void Awake()
     {
-        controls = new PlayersControls();
+        //controls = new PlayersControls();
     }
 
     private void OnEnable()
     {
-        controls.MainPlayer.Enable();
+        //controls.Enable();
+        _controlMap = controlsAsset.FindActionMap(controlMapName);
+        if (_controlMap != null)
+        {
+            _controlMap.Enable();
+            _moveAction = _controlMap.FindAction("Move");
+            _sprintAction = _controlMap.FindAction("Sprint");
+            _shootAction = _controlMap.FindAction("Shoot");
 
-        controls.MainPlayer.Shoot.performed += OnAim;
-        controls.MainPlayer.Shoot.canceled += OnShoot;
+            _shootAction.performed += OnAim;
+            _shootAction.canceled += OnShoot;
+        }
+        //controls.MainPlayer.Shoot.performed += OnAim;
+        //controls.MainPlayer.Shoot.canceled += OnShoot;
     }
 
     private void OnDisable()
     {
-        controls.MainPlayer.Disable();
+        _controlMap.Disable();
+        //controls.MainPlayer.Disable();
+
+        _shootAction.performed -= OnAim;
+        _shootAction.canceled -= OnShoot;
     }
 
     void Start()
     {
-        colBall = ball.GetComponent<Collider> ();
-        rbBall = ball.GetComponent<Rigidbody>();
-        mainCol = GetComponent<CapsuleCollider>();
-        rb = GetComponent<Rigidbody>();
-        Physics.gravity = new Vector3(0, -15, 0);
-        maxStamina = stamina;
-        staminaBar.maxValue = maxStamina;
+        _colBall = ball.GetComponent<Collider> ();
+        _rbBall = ball.GetComponent<Rigidbody>();
+        _rb = GetComponent<Rigidbody>();
+        _maxStamina = stamina;
+        staminaBar.maxValue = _maxStamina;
         powerBar.SetActive(false);
-        p1StartPos = attPos;
-        transform.position = new Vector3(p1StartPos.position.x, p1StartPos.position.y, p1StartPos.position.z);
     }
 
     void Update()
@@ -127,27 +141,27 @@ public class atPlayerC : MonoBehaviour
 
         BallFlying();
 
-        if (ballFlying == false && ballIn1Hands == false && rbBall.constraints != RigidbodyConstraints.None)
+        if (_ballFlying == false && _ballInHands == false && _rbBall.constraints != RigidbodyConstraints.None)
         {
-            ballEnemy = true;
+            _ballEnemy = true;
         }
         else
         {
-            ballEnemy = false;
+            _ballEnemy = false;
         }
     }
 
     private void FixedUpdate()
     {
-        rb.linearVelocity = new Vector3(moveDir.x * moveSpeed, 0, moveDir.y * moveSpeed);
+        _rb.linearVelocity = new Vector3(_moveDir.x * moveSpeed, 0, _moveDir.y * moveSpeed);
     }
 
     private void OnAim(InputAction.CallbackContext context)
     {
         //start aiming
         power = 1;
-        powerIncreasing = true;
-        powerBarON = true;
+        _powerIncreasing = true;
+        _powerBarON = true;
         powerBar.SetActive(true);
         StartCoroutine(UpdatePowerBar());
     }
@@ -155,51 +169,48 @@ public class atPlayerC : MonoBehaviour
     private void OnShoot(InputAction.CallbackContext context)
     {
         //shooting anim
-        powerBarON = false;
+        _powerBarON = false;
         throwS.Play();
-        ScoreOrMiss = Random.Range(20, 100);
-        LeftOrRight = Random.Range(0, 2);
+        _scoreOrMiss = Random.Range(20, 100);
+        _leftOrRight = Random.Range(0, 2);
         spacePressed = false;
-        ballFlying = true;
-        ballIn1Hands = false;
+        _ballFlying = true;
+        _ballInHands = false;
         T = 0;
         dribSpeed = 6;
         moveSpeed = 6;
 
         if (inZone)
-            addPoints = 1;
+            _addPoints = 1;
         else
-            addPoints = 2;
+            _addPoints = 2;
 
         if (blocked)
-            blockedShot = true;
+            _blockedShot = true;
         else
-            blockedShot = false;
+            _blockedShot = false;
 
-        rbBall.constraints = RigidbodyConstraints.None;
-        colBall.isTrigger = false;
+        _rbBall.constraints = RigidbodyConstraints.None;
+        _colBall.isTrigger = false;
 
-        controls.MainPlayer.Shoot.Disable();
+        _shootAction.Disable();
     }
 
     private void Movement()
     {
-        //dirX = Input.GetAxisRaw("Horizontal") * moveSpeed;
-        //dirY = Input.GetAxisRaw("Vertical") * moveSpeed;
-
-        moveDir = controls.MainPlayer.Move.ReadValue<Vector2>();
+        _moveDir = _moveAction.ReadValue<Vector2>();
     }
 
     IEnumerator UpdatePowerBar()
     {
-        while (powerBarON)
+        while (_powerBarON)
         {
-            if (powerIncreasing)
+            if (_powerIncreasing)
             {
                 power *= 1.3f;
-                if (power >= maxPower)
+                if (power >= _maxPower)
                 {
-                    powerIncreasing = false;
+                    _powerIncreasing = false;
                 }
             }
             else
@@ -207,7 +218,7 @@ public class atPlayerC : MonoBehaviour
                 power /= 1.3f;
                 if (power <= 1)
                 {
-                    powerIncreasing = true;
+                    _powerIncreasing = true;
                 }
             }
             
@@ -220,7 +231,7 @@ public class atPlayerC : MonoBehaviour
 
     private void BallFlying()
     {
-        if (ballFlying)
+        if (_ballFlying)
         {
             T += Time.deltaTime;
             float duration = 0.8f;
@@ -229,13 +240,13 @@ public class atPlayerC : MonoBehaviour
             Vector3 A = aboveHeadPos.position;
             Vector3 B;
 
-            if (power >= ScoreOrMiss && !blockedShot)
+            if (power >= _scoreOrMiss && !_blockedShot)
             {
                 B = target.position;
             }
             else
             {
-                if (LeftOrRight == 0)
+                if (_leftOrRight == 0)
                 {
                     B = miss1.position;
                 }
@@ -252,10 +263,10 @@ public class atPlayerC : MonoBehaviour
 
             if (t01 >= 1)
             {
-                ballFlying = false;
-                if (B == target.position && !blockedShot)
+                _ballFlying = false;
+                if (B == target.position && !_blockedShot)
                 {
-                    p1points += addPoints;
+                    p1points += _addPoints;
                     p1PointC.text = p1points.ToString();
                     swishS.Play();
                     roundSystem.Winner = 1;
@@ -269,14 +280,15 @@ public class atPlayerC : MonoBehaviour
 
     private void Ballin()
     {
-        if (ballIn1Hands)
+        if (_ballInHands)
         {
-            controls.MainPlayer.Shoot.Enable();
+            //controls.MainPlayer.Shoot.Enable();
+            _shootAction.Enable();
 
-            colBall.isTrigger = true;
-            rbBall.constraints = RigidbodyConstraints.FreezePosition;
+            _colBall.isTrigger = true;
+            _rbBall.constraints = RigidbodyConstraints.FreezePosition;
             
-            if (controls.MainPlayer.Shoot.IsPressed())
+            if (_shootAction.IsPressed())
             {
                 //aiming anim
                 spacePressed = true;
@@ -294,7 +306,7 @@ public class atPlayerC : MonoBehaviour
 
     private void BlockingPose()
     {
-        if (isBlocking && !ballIn1Hands && !ballFlying)
+        if (isBlocking && !_ballInHands && !_ballFlying)
         {
             lHand.localEulerAngles = Vector3.forward * -80;
             rHand.localEulerAngles = Vector3.forward * 80;
@@ -308,11 +320,11 @@ public class atPlayerC : MonoBehaviour
 
     private void Looking()
     {
-        if (ballIn1Hands)
+        if (_ballInHands)
         {
             transform.LookAt(new Vector3(hoop.position.x, transform.position.y, hoop.position.z));
         }
-        else if (ballIn1Hands == false && ballEnemy == true)
+        else if (_ballInHands == false && _ballEnemy == true)
         {
             transform.LookAt(new Vector3(enemy.position.x, transform.position.y, enemy.position.z));
         }
@@ -334,7 +346,7 @@ public class atPlayerC : MonoBehaviour
                 }
             }
         }
-        if (((Input.GetKeyDown(KeyCode.W)) || (Input.GetKeyDown(KeyCode.A)) || (Input.GetKeyDown(KeyCode.S)) || (Input.GetKeyDown(KeyCode.D))) && (Input.GetKey(KeyCode.LeftShift)) && !staminaDecreasing)
+        if (((Input.GetKeyDown(KeyCode.W)) || (Input.GetKeyDown(KeyCode.A)) || (Input.GetKeyDown(KeyCode.S)) || (Input.GetKeyDown(KeyCode.D))) && (Input.GetKey(KeyCode.LeftShift)) && !_staminaDecreasing)
         {
             if (stamina > 0)
             {
@@ -350,14 +362,14 @@ public class atPlayerC : MonoBehaviour
                     moveSpeed = 12;
                     dribSpeed = 12;
                     DecreaseStam();
-                    staminaDecreasing = true;
+                    _staminaDecreasing = true;
                 }
                 else
                 {
-                    if (stamina < maxStamina)
+                    if (stamina < _maxStamina)
                     {
                         IncreaseStam();
-                        staminaDecreasing = false;
+                        _staminaDecreasing = false;
                     }
                 }
             }
@@ -372,10 +384,10 @@ public class atPlayerC : MonoBehaviour
         {
             dribSpeed = 6;
             moveSpeed = 6;
-            if (stamina < maxStamina)
+            if (stamina < _maxStamina)
             {
                 IncreaseStam();
-                staminaDecreasing = false;
+                _staminaDecreasing = false;
             }
         }
 
@@ -384,10 +396,10 @@ public class atPlayerC : MonoBehaviour
 
     public void OnCollisionEnter(Collision other)
     {
-        if (other.gameObject.tag == "ballT" && !ballIn1Hands && !ballFlying)
+        if (other.gameObject.tag == "ballT" && !_ballInHands && !_ballFlying)
         {
             catchingS.Play();
-            ballIn1Hands = true;
+            _ballInHands = true;
         }
     }
 

@@ -10,20 +10,29 @@ public class roundSystem : MonoBehaviour
     [Space(20)]
     [SerializeField] private Transform _attPos;
     [SerializeField] private Transform _defPos;
-    
+    [Space(20)]
     [SerializeField] private GameObject _countDownUI;
     [SerializeField] private TextMeshProUGUI _countDown;
     [SerializeField] private TextMeshProUGUI _roundText;
+    [Space(20)]
+    [SerializeField] private float _timeAfterRound;
 
     private int _round = 1;
     private static int _winner = 1;
     private static bool _roundEnd = false;
-    private float _timerRemain = 2f;
+    private float _timerRemain;
     
     public static int Winner { set => _winner = value; }
     public static bool RoundEnd { set => _roundEnd = value; }
 
-    
+    private void Start()
+    {
+        _player1.position = _attPos.position;
+        _player2.position = _defPos.position;
+
+        _timerRemain = _timeAfterRound;
+    }
+
     void Update()
     {
         if (_roundEnd == true)
@@ -55,7 +64,7 @@ public class roundSystem : MonoBehaviour
             }
             _ball.position = _attPos.position;
 
-            _timerRemain = 2f;
+            _timerRemain = _timeAfterRound;
             _countDownUI.SetActive(false);
             _round++;
             _roundText.text = _round.ToString();
