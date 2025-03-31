@@ -44,12 +44,14 @@ public class PlayerController : MonoBehaviour
     public AudioSource catchingS;
     public AudioSource throwS;
     public AudioSource swishS;
+    public AudioSource rimHit;
 
     private Rigidbody _rbBall;
     private Rigidbody _rb;
     private Collider _colBall;
     
     private Vector3 _moveDir = Vector3.zero;
+    private Vector3 A;
 
     public float dribSpeed;
     public float moveSpeed;
@@ -194,6 +196,8 @@ public class PlayerController : MonoBehaviour
         _colBall.isTrigger = false;
 
         _shootAction.Disable();
+
+        A = aboveHeadPos.position;
     }
 
     private void Movement()
@@ -237,7 +241,7 @@ public class PlayerController : MonoBehaviour
             float duration = 0.8f;
             float t01 = T / duration;
 
-            Vector3 A = aboveHeadPos.position;
+            
             Vector3 B;
 
             if (power >= _scoreOrMiss && !_blockedShot)
@@ -264,7 +268,7 @@ public class PlayerController : MonoBehaviour
             if (t01 >= 1)
             {
                 _ballFlying = false;
-                if (B == target.position && !_blockedShot)
+                if (B == target.position)
                 {
                     p1points += _addPoints;
                     p1PointC.text = p1points.ToString();
@@ -272,6 +276,7 @@ public class PlayerController : MonoBehaviour
                     roundSystem.Winner = 1;
                     roundSystem.RoundEnd = true;
                 }
+                else rimHit.Play();
                 ball.GetComponent<Rigidbody>().isKinematic = false;
                 powerBar.SetActive(false);
             }
