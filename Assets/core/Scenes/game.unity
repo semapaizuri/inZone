@@ -874,11 +874,11 @@ MonoBehaviour:
   ballInDrib: 0
   ballRight: 1
   ballLeft: 0
-  spacePressed: 0
   inZone: 0
   blocked: 0
   isBlocking: 0
   fallen: 0
+  _ballInHands: 0
 --- !u!136 &520236083
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2942,7 +2942,7 @@ Transform:
   m_GameObject: {fileID: 974912818}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 2, z: 0.0388}
+  m_LocalPosition: {x: 0, y: 2, z: -0.0005}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3363,7 +3363,7 @@ AudioSource:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1093021467}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 2b0e1f848233e2f478d62c4bf8e3d10a, type: 3}
@@ -5107,11 +5107,11 @@ MonoBehaviour:
   ballInDrib: 0
   ballRight: 1
   ballLeft: 0
-  spacePressed: 0
   inZone: 0
   blocked: 0
   isBlocking: 0
   fallen: 0
+  _ballInHands: 0
 --- !u!1 &1511338033
 GameObject:
   m_ObjectHideFlags: 0
@@ -5168,7 +5168,7 @@ Transform:
   m_GameObject: {fileID: 1518045942}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 2, z: -0.0804}
+  m_LocalPosition: {x: 0, y: 2, z: -0.0706}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6040,13 +6040,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1684828108}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.50000006, y: 0.49999994, z: 0.50000006, w: 0.49999994}
-  m_LocalPosition: {x: 0.0006540281, y: -0.00016503499, z: -0.00096652564}
-  m_LocalScale: {x: 0.016019437, y: 0.01601944, z: 0.016019436}
-  m_ConstrainProportionsScale: 0
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 5240018118566329443}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1 &1731991842
 GameObject:
   m_ObjectHideFlags: 0
