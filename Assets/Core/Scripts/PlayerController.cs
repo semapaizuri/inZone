@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 
 public class PlayerController : MonoBehaviour
 {
@@ -37,7 +38,7 @@ public class PlayerController : MonoBehaviour
     public GameObject powerBar;
     public GameObject rig;
 
-    public TextMeshProUGUI p1PointC;
+    public TextMeshProUGUI PointCounter;
     public Slider staminaBar;
     public Slider throwBar;
 
@@ -57,8 +58,8 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed;
     public float power;
     public float stamina;
-    public float p1points = 0;
-    public float dValue;
+    public float points = 0;
+    public float staminaUsage;
 
     private float _maxPower = 100;
     private float _maxStamina;
@@ -70,15 +71,15 @@ public class PlayerController : MonoBehaviour
     public bool ballInDrib;
     public bool ballRight = true;
     public bool ballLeft;
-    public bool spacePressed;
     public bool inZone;
     public bool blocked;
     public bool isBlocking;
     public bool fallen;
 
+    private bool _isAiming;
     private bool _blockedShot;
     private bool _staminaDecreasing;
-    private bool _ballInHands;
+    [SerializeField] bool _ballInHands;
     private bool _ballFlying;
     private bool _ballEnemy;
     private bool _powerIncreasing = true;
@@ -102,6 +103,7 @@ public class PlayerController : MonoBehaviour
 
             _shootAction.performed += OnAim;
             _shootAction.canceled += OnShoot;
+            _sprintAction.performed += StartOfSprint;
         }
         //controls.MainPlayer.Shoot.performed += OnAim;
         //controls.MainPlayer.Shoot.canceled += OnShoot;
@@ -114,6 +116,7 @@ public class PlayerController : MonoBehaviour
 
         _shootAction.performed -= OnAim;
         _shootAction.canceled -= OnShoot;
+        _sprintAction.performed -= StartOfSprint;
     }
 
     void Start()
@@ -175,7 +178,7 @@ public class PlayerController : MonoBehaviour
         throwS.Play();
         _scoreOrMiss = Random.Range(20, 100);
         _leftOrRight = Random.Range(0, 2);
-        spacePressed = false;
+        _isAiming = false;
         _ballFlying = true;
         _ballInHands = false;
         T = 0;
@@ -240,7 +243,6 @@ public class PlayerController : MonoBehaviour
             T += Time.deltaTime;
             float duration = 0.8f;
             float t01 = T / duration;
-
             
             Vector3 B;
 
@@ -270,10 +272,10 @@ public class PlayerController : MonoBehaviour
                 _ballFlying = false;
                 if (B == target.position)
                 {
-                    p1points += _addPoints;
-                    p1PointC.text = p1points.ToString();
+                    points += _addPoints;
+                    PointCounter.text = points.ToString();
                     swishS.Play();
-                    roundSystem.Winner = 1;
+                    roundSystem.Winner = controlMapName == "MainPlayer" ? 1 : 2;
                     roundSystem.RoundEnd = true;
                 }
                 else rimHit.Play();
@@ -296,7 +298,7 @@ public class PlayerController : MonoBehaviour
             if (_shootAction.IsPressed())
             {
                 //aiming anim
-                spacePressed = true;
+                _isAiming = true;
                 ball.position = aboveHeadPos.position;
                 moveSpeed = 2;
 
@@ -339,30 +341,24 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void Sprint()
+    private void StartOfSprint(InputAction.CallbackContext context)
     {
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        if (stamina > 0)
         {
-            if (stamina > 0)
-            {
-                if (((Input.GetKey(KeyCode.W)) || (Input.GetKey(KeyCode.A)) || (Input.GetKey(KeyCode.S)) || (Input.GetKey(KeyCode.D))) && spacePressed == false)
-                {
-                    stamina -= 2;
-                }
-            }
-        }
-        if (((Input.GetKeyDown(KeyCode.W)) || (Input.GetKeyDown(KeyCode.A)) || (Input.GetKeyDown(KeyCode.S)) || (Input.GetKeyDown(KeyCode.D))) && (Input.GetKey(KeyCode.LeftShift)) && !_staminaDecreasing)
-        {
-            if (stamina > 0)
+            if (_rb.linearVelocity != Vector3.zero && _isAiming == false)
             {
                 stamina -= 2;
             }
         }
-        if (Input.GetKey(KeyCode.LeftShift))
+    }
+
+    private void Sprint()
+    {
+        if (_sprintAction.IsPressed())
         {
             if (stamina > 0)
             {
-                if (((Input.GetKey(KeyCode.W)) || (Input.GetKey(KeyCode.A)) || (Input.GetKey(KeyCode.S)) || (Input.GetKey(KeyCode.D))) && spacePressed == false)
+                if (_rb.linearVelocity != Vector3.zero && _isAiming == false)
                 {
                     moveSpeed = 12;
                     dribSpeed = 12;
@@ -430,12 +426,12 @@ public class PlayerController : MonoBehaviour
     {
         if (stamina != 0)
         { 
-            stamina -= dValue * Time.deltaTime;
+            stamina -= staminaUsage * Time.deltaTime;
         }
     }
 
     private void IncreaseStam()
     {
-        stamina += dValue / 2 * Time.deltaTime;
+        stamina += staminaUsage / 2 * Time.deltaTime;
     }
 }

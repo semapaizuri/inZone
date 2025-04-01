@@ -29,6 +29,7 @@ public class roundSystem : MonoBehaviour
     {
         _player1.position = _attPos.position;
         _player2.position = _defPos.position;
+        
 
         _timerRemain = _timeAfterRound;
     }
