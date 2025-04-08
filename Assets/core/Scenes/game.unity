@@ -848,36 +848,27 @@ MonoBehaviour:
   miss2: {fileID: 1511338034}
   hoop: {fileID: 8632055957166112781}
   ball: {fileID: 1567961863}
-  hands: {fileID: 1886577331}
   rHand: {fileID: 1465634413}
   lHand: {fileID: 1764027260}
   aboveHeadPos: {fileID: 1668860572}
   RdribblePos: {fileID: 1333359958}
-  LdribblePos: {fileID: 639643227}
-  attPos: {fileID: 1518045943}
-  defPos: {fileID: 974912819}
   powerBar: {fileID: 326156144}
   rig: {fileID: 1894926732}
   PointCounter: {fileID: 2033308098}
   staminaBar: {fileID: 1029564306}
   throwBar: {fileID: 326156146}
-  catchingS: {fileID: 520236085}
+  catchingSound: {fileID: 520236085}
   throwS: {fileID: 520236086}
   swishS: {fileID: 520236087}
   rimHit: {fileID: 1567961868}
-  dribSpeed: 6
   moveSpeed: 6
   power: 0
   stamina: 20
   points: 0
   staminaUsage: 5
-  ballInDrib: 0
-  ballRight: 1
-  ballLeft: 0
   inZone: 0
   blocked: 0
   isBlocking: 0
-  fallen: 0
   _ballInHands: 0
 --- !u!136 &520236083
 CapsuleCollider:
@@ -5081,36 +5072,27 @@ MonoBehaviour:
   miss2: {fileID: 1511338034}
   hoop: {fileID: 8632055957166112781}
   ball: {fileID: 1567961863}
-  hands: {fileID: 2070703340}
   rHand: {fileID: 2084721296}
   lHand: {fileID: 730269808}
   aboveHeadPos: {fileID: 1835172120}
   RdribblePos: {fileID: 1332047725}
-  LdribblePos: {fileID: 216236122}
-  attPos: {fileID: 1518045943}
-  defPos: {fileID: 974912819}
   powerBar: {fileID: 75813832}
   rig: {fileID: 933662970}
   PointCounter: {fileID: 1531989285}
   staminaBar: {fileID: 1157926048}
   throwBar: {fileID: 75813834}
-  catchingS: {fileID: 1495169711}
+  catchingSound: {fileID: 1495169711}
   throwS: {fileID: 1495169710}
   swishS: {fileID: 1495169709}
   rimHit: {fileID: 1567961868}
-  dribSpeed: 6
   moveSpeed: 6
   power: 0
   stamina: 20
   points: 0
   staminaUsage: 5
-  ballInDrib: 0
-  ballRight: 1
-  ballLeft: 0
   inZone: 0
   blocked: 0
   isBlocking: 0
-  fallen: 0
   _ballInHands: 0
 --- !u!1 &1511338033
 GameObject:
@@ -5581,9 +5563,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37ddd56ee2cabe742ae979d79d91ff12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 0}
-  miss1: {fileID: 0}
-  miss2: {fileID: 0}
   groundhitS: {fileID: 1567961866}
   rimhitS: {fileID: 1567961866}
   dribbleS: {fileID: 1567961867}
@@ -6041,7 +6020,7 @@ Transform:
   m_GameObject: {fileID: 1684828108}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0, z: -0.0014}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []

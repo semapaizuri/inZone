@@ -19,24 +19,23 @@ public class roundSystem : MonoBehaviour
 
     private int _round = 1;
     private static int _winner = 1;
-    private static bool _roundEnd = false;
     private float _timerRemain;
     
     public static int Winner { set => _winner = value; }
-    public static bool RoundEnd { set => _roundEnd = value; }
+    public static bool RoundEnd { get; set; }
 
     private void Start()
     {
         _player1.position = _attPos.position;
         _player2.position = _defPos.position;
-        
+        _ball.position = _attPos.position;
 
         _timerRemain = _timeAfterRound;
     }
 
     void Update()
     {
-        if (_roundEnd == true)
+        if (RoundEnd == true)
         {
             StartingRound();
         }
@@ -52,7 +51,7 @@ public class roundSystem : MonoBehaviour
         }
         else
         {
-            _roundEnd = false;
+            RoundEnd = false;
             if (_winner == 1)
             {
                 _player1.position = _attPos.position;
@@ -63,6 +62,9 @@ public class roundSystem : MonoBehaviour
                 _player1.position = _defPos.position;
                 _player2.position = _attPos.position;
             }
+
+            _player1.GetComponent<PlayerController>().BallOut();
+            _player2.GetComponent<PlayerController>().BallOut();
             _ball.position = _attPos.position;
 
             _timerRemain = _timeAfterRound;

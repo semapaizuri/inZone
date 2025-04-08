@@ -26,14 +26,10 @@ public class PlayerController : MonoBehaviour
     public Transform miss2;
     public Transform hoop;
     public Transform ball;
-    public Transform hands;
     public Transform rHand;
     public Transform lHand;
     public Transform aboveHeadPos;
     public Transform RdribblePos;
-    public Transform LdribblePos;
-    public Transform attPos;
-    public Transform defPos;
     
     public GameObject powerBar;
     public GameObject rig;
@@ -42,7 +38,7 @@ public class PlayerController : MonoBehaviour
     public Slider staminaBar;
     public Slider throwBar;
 
-    public AudioSource catchingS;
+    public AudioSource catchingSound;
     public AudioSource throwS;
     public AudioSource swishS;
     public AudioSource rimHit;
@@ -53,8 +49,7 @@ public class PlayerController : MonoBehaviour
     
     private Vector3 _moveDir = Vector3.zero;
     private Vector3 A;
-
-    public float dribSpeed;
+    
     public float moveSpeed;
     public float power;
     public float stamina;
@@ -67,19 +62,17 @@ public class PlayerController : MonoBehaviour
     private float _addPoints = 0;
     private int _leftOrRight;
     private int _scoreOrMiss;
-
-    public bool ballInDrib;
-    public bool ballRight = true;
-    public bool ballLeft;
+    
     public bool inZone;
     public bool blocked;
     public bool isBlocking;
-    public bool fallen;
 
+    [SerializeField] private bool _ballInHands;
+
+    private bool _isChecking;
     private bool _isAiming;
     private bool _blockedShot;
     private bool _staminaDecreasing;
-    [SerializeField] bool _ballInHands;
     private bool _ballFlying;
     private bool _ballEnemy;
     private bool _powerIncreasing = true;
@@ -163,44 +156,53 @@ public class PlayerController : MonoBehaviour
 
     private void OnAim(InputAction.CallbackContext context)
     {
-        //start aiming
-        power = 1;
-        _powerIncreasing = true;
-        _powerBarON = true;
-        powerBar.SetActive(true);
-        StartCoroutine(UpdatePowerBar());
+        if (!_isChecking)
+        {
+            //start aiming
+            power = 1;
+            _powerIncreasing = true;
+            _powerBarON = true;
+            powerBar.SetActive(true);
+            StartCoroutine(UpdatePowerBar());
+        }
     }
 
     private void OnShoot(InputAction.CallbackContext context)
     {
-        //shooting anim
-        _powerBarON = false;
-        throwS.Play();
-        _scoreOrMiss = Random.Range(20, 100);
-        _leftOrRight = Random.Range(0, 2);
-        _isAiming = false;
-        _ballFlying = true;
-        _ballInHands = false;
-        T = 0;
-        dribSpeed = 6;
-        moveSpeed = 6;
+        if (!_isChecking)
+        {
+            //shooting anim
+            _powerBarON = false;
+            throwS.Play();
+            _scoreOrMiss = Random.Range(20, 100);
+            _leftOrRight = Random.Range(0, 2);
+            _isAiming = false;
+            _ballFlying = true;
+            _ballInHands = false;
+            T = 0;
+            moveSpeed = 6;
 
-        if (inZone)
-            _addPoints = 1;
+            if (inZone)
+                _addPoints = 1;
+            else
+                _addPoints = 2;
+
+            if (blocked)
+                _blockedShot = true;
+            else
+                _blockedShot = false;
+
+            _rbBall.constraints = RigidbodyConstraints.None;
+            _colBall.isTrigger = false;
+
+            _shootAction.Disable();
+
+            A = aboveHeadPos.position;
+        }
         else
-            _addPoints = 2;
-
-        if (blocked)
-            _blockedShot = true;
-        else
-            _blockedShot = false;
-
-        _rbBall.constraints = RigidbodyConstraints.None;
-        _colBall.isTrigger = false;
-
-        _shootAction.Disable();
-
-        A = aboveHeadPos.position;
+        {
+            
+        }
     }
 
     private void Movement()
@@ -233,6 +235,14 @@ public class PlayerController : MonoBehaviour
             yield return new WaitForSeconds(0.02f);
         }
         yield return null;
+    }
+
+    private void Checking()
+    {
+        if (_isChecking)
+        {
+            _moveAction.Disable();
+        }
     }
 
 
@@ -272,14 +282,17 @@ public class PlayerController : MonoBehaviour
                 _ballFlying = false;
                 if (B == target.position)
                 {
-                    points += _addPoints;
-                    PointCounter.text = points.ToString();
+                    if (!roundSystem.RoundEnd)
+                    {
+                        points += _addPoints;
+                        PointCounter.text = points.ToString();
+                        roundSystem.Winner = controlMapName == "MainPlayer" ? 1 : 2;
+                        roundSystem.RoundEnd = true;
+                    }
                     swishS.Play();
-                    roundSystem.Winner = controlMapName == "MainPlayer" ? 1 : 2;
-                    roundSystem.RoundEnd = true;
                 }
                 else rimHit.Play();
-                ball.GetComponent<Rigidbody>().isKinematic = false;
+                _rbBall.isKinematic = false;
                 powerBar.SetActive(false);
             }
         }
@@ -361,7 +374,6 @@ public class PlayerController : MonoBehaviour
                 if (_rb.linearVelocity != Vector3.zero && _isAiming == false)
                 {
                     moveSpeed = 12;
-                    dribSpeed = 12;
                     DecreaseStam();
                     _staminaDecreasing = true;
                 }
@@ -376,14 +388,12 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                dribSpeed = 6;
                 moveSpeed = 6;
             }
 
         }
         else
         {
-            dribSpeed = 6;
             moveSpeed = 6;
             if (stamina < _maxStamina)
             {
@@ -395,11 +405,22 @@ public class PlayerController : MonoBehaviour
         staminaBar.value = stamina;
     }
 
+    public void BallOut()
+    {
+        _ballFlying = false;
+        if (!_ballInHands) return;
+        _ballInHands = false;
+        ball.position = new Vector3(0, 0, 5);
+        _rbBall.constraints = RigidbodyConstraints.None;
+        _colBall.isTrigger = false;
+        _rbBall.isKinematic = false;
+    }
+
     public void OnCollisionEnter(Collision other)
     {
         if (other.gameObject.tag == "ballT" && !_ballInHands && !_ballFlying)
         {
-            catchingS.Play();
+            catchingSound.Play();
             _ballInHands = true;
         }
     }
