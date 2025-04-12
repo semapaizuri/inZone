@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
+using System.ComponentModel;
 
 public class PlayerController : MonoBehaviour
 {
@@ -54,6 +55,9 @@ public class PlayerController : MonoBehaviour
     private Vector3 A;
     
     public float moveSpeed;
+    [SerializeField] private float DEFAULT_MOVESPEED = 5;
+    [SerializeField] private float AIMING_MOVESPEED = 1;
+    [SerializeField] private float SPRINT_MOVESPEED = 10;
     public float power;
     public float stamina;
     public float points = 0;
@@ -72,10 +76,8 @@ public class PlayerController : MonoBehaviour
     
     [SerializeField] private bool _ballInPlayerHands;
     
-    private bool _checked;
     private bool _isAiming;
     private bool _blockedShot;
-    private bool _staminaDecreasing;
     private bool _ballFlying;
     private bool _ballEnemy;
     private bool _powerIncreasing = true;
@@ -179,7 +181,7 @@ public class PlayerController : MonoBehaviour
             _ballFlying = true;
             _ballInPlayerHands = false;
             T = 0;
-            moveSpeed = 6;
+            moveSpeed = DEFAULT_MOVESPEED;
 
             if (inZone)
                 _addPoints = 1;
@@ -200,11 +202,12 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
+            _ballInPlayerHands = false;
             _rbBall.constraints = RigidbodyConstraints.None;
             _colBall.isTrigger = false;
             _rbBall.isKinematic = false;
-            _rbBall.linearVelocity = new Vector3(0, 0, 10);
-            _ballInPlayerHands = false;
+            _rbBall.linearVelocity = transform.forward * 20;
+            _shootAction.Disable();
         }
     }
 
@@ -245,6 +248,7 @@ public class PlayerController : MonoBehaviour
         if (roundSystem.IsCheck)
         {
             _moveAction.Disable();
+            stamina = _maxStamina;
         }
         else
         {
@@ -321,7 +325,7 @@ public class PlayerController : MonoBehaviour
                     //aiming anim
                     _isAiming = true;
                     ball.position = aboveHeadPos.position;
-                    moveSpeed = 2;
+                    moveSpeed = AIMING_MOVESPEED;
                 }
                 else
                 {
@@ -355,17 +359,24 @@ public class PlayerController : MonoBehaviour
 
     private void Looking()
     {
-        if (_ballInPlayerHands)
+        if (!roundSystem.IsCheck)
         {
-            transform.LookAt(new Vector3(hoop.position.x, transform.position.y, hoop.position.z));
-        }
-        else if (_ballInPlayerHands == false && _ballEnemy == true)
-        {
-            transform.LookAt(new Vector3(enemy.position.x, transform.position.y, enemy.position.z));
+            if (_ballInPlayerHands)
+            {
+                transform.LookAt(new Vector3(hoop.position.x, transform.position.y, hoop.position.z));
+            }
+            else if (_ballInPlayerHands == false && _ballEnemy == true)
+            {
+                transform.LookAt(new Vector3(enemy.position.x, transform.position.y, enemy.position.z));
+            }
+            else
+            {
+                transform.LookAt(new Vector3(ball.position.x, transform.position.y, ball.position.z));
+            }
         }
         else
         {
-            transform.LookAt(new Vector3(ball.position.x, transform.position.y, ball.position.z));
+            transform.LookAt(new Vector3(enemy.position.x, transform.position.y, enemy.position.z));
         }
     }
 
@@ -388,32 +399,29 @@ public class PlayerController : MonoBehaviour
             {
                 if (_rb.linearVelocity != Vector3.zero && _isAiming == false)
                 {
-                    moveSpeed = 12;
+                    moveSpeed = SPRINT_MOVESPEED;
                     DecreaseStam();
-                    _staminaDecreasing = true;
                 }
                 else
                 {
                     if (stamina < _maxStamina)
                     {
                         IncreaseStam();
-                        _staminaDecreasing = false;
                     }
                 }
             }
             else
             {
-                moveSpeed = 6;
+                moveSpeed = DEFAULT_MOVESPEED;
             }
 
         }
         else
         {
-            moveSpeed = 6;
+            moveSpeed = DEFAULT_MOVESPEED;
             if (stamina < _maxStamina)
             {
                 IncreaseStam();
-                _staminaDecreasing = false;
             }
         }
 
@@ -437,14 +445,14 @@ public class PlayerController : MonoBehaviour
         {
             catchingSound.Play();
             _ballInPlayerHands = true;
-            if (roundSystem.IsCheck && !_checked && transform.position == _defPos.position)
+            if (roundSystem.IsCheck && !roundSystem.Checked && inZone)
             {
-                _checked = true;
+                roundSystem.Checked = true;
             }
-            else if (roundSystem.IsCheck && _checked && transform.position == _attPos.position)
+            if (roundSystem.IsCheck && roundSystem.Checked && !inZone)
             {
+                roundSystem.Checked = false;
                 roundSystem.IsCheck = false;
-                _checked = false;
             }
         }
     }
