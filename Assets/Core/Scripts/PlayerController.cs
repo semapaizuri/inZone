@@ -18,7 +18,6 @@ public class PlayerController : MonoBehaviour
     private InputAction _moveAction;
     private InputAction _shootAction;
     private InputAction _sprintAction;
-    
 
     public Transform enemy;
     public Transform target;
@@ -30,6 +29,10 @@ public class PlayerController : MonoBehaviour
     public Transform lHand;
     public Transform aboveHeadPos;
     public Transform RdribblePos;
+    public Transform ballCheckPos;
+
+    [SerializeField] private Transform _attPos;
+    [SerializeField] private Transform _defPos;
     
     public GameObject powerBar;
     public GameObject rig;
@@ -66,10 +69,10 @@ public class PlayerController : MonoBehaviour
     public bool inZone;
     public bool blocked;
     public bool isBlocking;
-
-    [SerializeField] private bool _ballInHands;
-
-    private bool _isChecking;
+    
+    [SerializeField] private bool _ballInPlayerHands;
+    
+    private bool _checked;
     private bool _isAiming;
     private bool _blockedShot;
     private bool _staminaDecreasing;
@@ -128,18 +131,14 @@ public class PlayerController : MonoBehaviour
         isBlocking = blockChecker2.blocked2;
 
         BlockingPose();
-
         Looking();
-
         Movement();
-
         Sprint();
-
         Ballin();
-
         BallFlying();
+        Checking();
 
-        if (_ballFlying == false && _ballInHands == false && _rbBall.constraints != RigidbodyConstraints.None)
+        if (_ballFlying == false && _ballInPlayerHands == false && _rbBall.constraints != RigidbodyConstraints.None)
         {
             _ballEnemy = true;
         }
@@ -156,7 +155,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnAim(InputAction.CallbackContext context)
     {
-        if (!_isChecking)
+        if (!roundSystem.IsCheck)
         {
             //start aiming
             power = 1;
@@ -169,7 +168,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnShoot(InputAction.CallbackContext context)
     {
-        if (!_isChecking)
+        if (!roundSystem.IsCheck)
         {
             //shooting anim
             _powerBarON = false;
@@ -178,7 +177,7 @@ public class PlayerController : MonoBehaviour
             _leftOrRight = Random.Range(0, 2);
             _isAiming = false;
             _ballFlying = true;
-            _ballInHands = false;
+            _ballInPlayerHands = false;
             T = 0;
             moveSpeed = 6;
 
@@ -201,7 +200,11 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            
+            _rbBall.constraints = RigidbodyConstraints.None;
+            _colBall.isTrigger = false;
+            _rbBall.isKinematic = false;
+            _rbBall.linearVelocity = new Vector3(0, 0, 10);
+            _ballInPlayerHands = false;
         }
     }
 
@@ -239,9 +242,13 @@ public class PlayerController : MonoBehaviour
 
     private void Checking()
     {
-        if (_isChecking)
+        if (roundSystem.IsCheck)
         {
             _moveAction.Disable();
+        }
+        else
+        {
+            _moveAction.Enable();
         }
     }
 
@@ -300,33 +307,41 @@ public class PlayerController : MonoBehaviour
 
     private void Ballin()
     {
-        if (_ballInHands)
+        if (_ballInPlayerHands)
         {
-            //controls.MainPlayer.Shoot.Enable();
-            _shootAction.Enable();
-
-            _colBall.isTrigger = true;
-            _rbBall.constraints = RigidbodyConstraints.FreezePosition;
-            
-            if (_shootAction.IsPressed())
+            if (!roundSystem.IsCheck)
             {
-                //aiming anim
-                _isAiming = true;
-                ball.position = aboveHeadPos.position;
-                moveSpeed = 2;
-
+                //controls.MainPlayer.Shoot.Enable();
+                _shootAction.Enable();
+                _colBall.isTrigger = true;
+                _rbBall.constraints = RigidbodyConstraints.FreezePosition;
+            
+                if (_shootAction.IsPressed())
+                {
+                    //aiming anim
+                    _isAiming = true;
+                    ball.position = aboveHeadPos.position;
+                    moveSpeed = 2;
+                }
+                else
+                {
+                    ball.position = RdribblePos.position;
+                    //dribbling
+                }
             }
             else
             {
-                ball.position = RdribblePos.position;
-                //dribbling
+                _shootAction.Enable();
+                _colBall.isTrigger = true;
+                _rbBall.constraints = RigidbodyConstraints.FreezePosition;
+                ball.position = ballCheckPos.position;
             }
         }
     }
 
     private void BlockingPose()
     {
-        if (isBlocking && !_ballInHands && !_ballFlying)
+        if (isBlocking && !_ballInPlayerHands && !_ballFlying)
         {
             lHand.localEulerAngles = Vector3.forward * -80;
             rHand.localEulerAngles = Vector3.forward * 80;
@@ -340,11 +355,11 @@ public class PlayerController : MonoBehaviour
 
     private void Looking()
     {
-        if (_ballInHands)
+        if (_ballInPlayerHands)
         {
             transform.LookAt(new Vector3(hoop.position.x, transform.position.y, hoop.position.z));
         }
-        else if (_ballInHands == false && _ballEnemy == true)
+        else if (_ballInPlayerHands == false && _ballEnemy == true)
         {
             transform.LookAt(new Vector3(enemy.position.x, transform.position.y, enemy.position.z));
         }
@@ -408,8 +423,8 @@ public class PlayerController : MonoBehaviour
     public void BallOut()
     {
         _ballFlying = false;
-        if (!_ballInHands) return;
-        _ballInHands = false;
+        if (!_ballInPlayerHands) return;
+        _ballInPlayerHands = false;
         ball.position = new Vector3(0, 0, 5);
         _rbBall.constraints = RigidbodyConstraints.None;
         _colBall.isTrigger = false;
@@ -418,10 +433,19 @@ public class PlayerController : MonoBehaviour
 
     public void OnCollisionEnter(Collision other)
     {
-        if (other.gameObject.tag == "ballT" && !_ballInHands && !_ballFlying)
+        if (other.gameObject.CompareTag("ballT") && !_ballInPlayerHands && !_ballFlying)
         {
             catchingSound.Play();
-            _ballInHands = true;
+            _ballInPlayerHands = true;
+            if (roundSystem.IsCheck && !_checked && transform.position == _defPos.position)
+            {
+                _checked = true;
+            }
+            else if (roundSystem.IsCheck && _checked && transform.position == _attPos.position)
+            {
+                roundSystem.IsCheck = false;
+                _checked = false;
+            }
         }
     }
 

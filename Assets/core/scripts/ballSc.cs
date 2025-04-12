@@ -7,11 +7,12 @@ public class ballSc : MonoBehaviour
     public AudioSource groundhitS;
     public AudioSource rimhitS;
     public AudioSource dribbleS;
-    
+
+    public bool ballInHands;
 
     public void OnCollisionEnter(Collision other)
     {
-        if (other.gameObject.tag == "ground")
+        if (other.gameObject.CompareTag("ground"))
         {
             groundhitS.Play();
         }
@@ -19,11 +20,11 @@ public class ballSc : MonoBehaviour
 
     public void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.tag == "rim")
+        if (other.gameObject.CompareTag("rim"))
         {
             rimhitS.Play();
         }
-        if (other.gameObject.tag == "ground")
+        if (other.gameObject.CompareTag("ground"))
         {
             dribbleS.Play();
         }

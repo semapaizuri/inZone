@@ -208,6 +208,37 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &149674113
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 149674114}
+  m_Layer: 0
+  m_Name: ballCheckPos
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &149674114
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 149674113}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.655, z: 0.67}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 520236081}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &150533441
 GameObject:
   m_ObjectHideFlags: 0
@@ -825,6 +856,7 @@ Transform:
   - {fileID: 639643227}
   - {fileID: 1668860572}
   - {fileID: 1347218679}
+  - {fileID: 149674114}
   - {fileID: 719864866}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -852,6 +884,9 @@ MonoBehaviour:
   lHand: {fileID: 1764027260}
   aboveHeadPos: {fileID: 1668860572}
   RdribblePos: {fileID: 1333359958}
+  ballCheckPos: {fileID: 149674114}
+  _attPos: {fileID: 1518045943}
+  _defPos: {fileID: 974912819}
   powerBar: {fileID: 326156144}
   rig: {fileID: 1894926732}
   PointCounter: {fileID: 2033308098}
@@ -869,7 +904,7 @@ MonoBehaviour:
   inZone: 0
   blocked: 0
   isBlocking: 0
-  _ballInHands: 0
+  _ballInPlayerHands: 0
 --- !u!136 &520236083
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -4266,7 +4301,7 @@ CapsuleCollider:
   m_Radius: 0.3
   m_Height: 1.56
   m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: -0.48, z: 0}
 --- !u!1 &1365081569
 GameObject:
   m_ObjectHideFlags: 0
@@ -5076,6 +5111,9 @@ MonoBehaviour:
   lHand: {fileID: 730269808}
   aboveHeadPos: {fileID: 1835172120}
   RdribblePos: {fileID: 1332047725}
+  ballCheckPos: {fileID: 0}
+  _attPos: {fileID: 0}
+  _defPos: {fileID: 0}
   powerBar: {fileID: 75813832}
   rig: {fileID: 933662970}
   PointCounter: {fileID: 1531989285}
@@ -5093,7 +5131,7 @@ MonoBehaviour:
   inZone: 0
   blocked: 0
   isBlocking: 0
-  _ballInHands: 0
+  _ballInPlayerHands: 0
 --- !u!1 &1511338033
 GameObject:
   m_ObjectHideFlags: 0
@@ -5566,6 +5604,7 @@ MonoBehaviour:
   groundhitS: {fileID: 1567961866}
   rimhitS: {fileID: 1567961866}
   dribbleS: {fileID: 1567961867}
+  ballInHands: 0
 --- !u!82 &1567961866
 AudioSource:
   m_ObjectHideFlags: 0

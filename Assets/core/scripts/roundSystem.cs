@@ -24,12 +24,14 @@ public class roundSystem : MonoBehaviour
     public static int Winner { set => _winner = value; }
     public static bool RoundEnd { get; set; }
 
+    public static bool IsCheck { get; set; }
+
     private void Start()
     {
+        IsCheck = true;
         _player1.position = _attPos.position;
         _player2.position = _defPos.position;
         _ball.position = _attPos.position;
-
         _timerRemain = _timeAfterRound;
     }
 
@@ -71,6 +73,7 @@ public class roundSystem : MonoBehaviour
             _countDownUI.SetActive(false);
             _round++;
             _roundText.text = _round.ToString();
+            IsCheck = true;
         }
     }
 }
