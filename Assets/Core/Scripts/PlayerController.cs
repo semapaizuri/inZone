@@ -69,6 +69,7 @@ public class PlayerController : MonoBehaviour
     private float _addPoints = 0;
     private int _leftOrRight;
     private int _scoreOrMiss;
+    private float _powerBarSpeed;
     
     public bool inZone;
     public bool blocked;
@@ -161,6 +162,8 @@ public class PlayerController : MonoBehaviour
         {
             //start aiming
             power = 1;
+            _powerBarSpeed = 1 + Random.Range(1, 6) / 10f;
+            Debug.Log(_powerBarSpeed);
             _powerIncreasing = true;
             _powerBarON = true;
             powerBar.SetActive(true);
@@ -222,7 +225,7 @@ public class PlayerController : MonoBehaviour
         {
             if (_powerIncreasing)
             {
-                power *= 1.3f;
+                power *= _powerBarSpeed;
                 if (power >= _maxPower)
                 {
                     _powerIncreasing = false;
@@ -230,7 +233,7 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                power /= 1.3f;
+                power /= _powerBarSpeed;
                 if (power <= 1)
                 {
                     _powerIncreasing = true;
