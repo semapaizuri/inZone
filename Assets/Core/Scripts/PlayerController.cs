@@ -141,6 +141,12 @@ public class PlayerController : MonoBehaviour
         BallFlying();
         Checking();
 
+        if (roundSystem.TimeIsOut)
+        {
+            if (_ballInPlayerHands) roundSystem.Winner = controlMapName == "MainPlayer" ? 2 : 1;
+            roundSystem.RoundEnd = true;
+        }
+
         if (_ballFlying == false && _ballInPlayerHands == false && _rbBall.constraints != RigidbodyConstraints.None)
         {
             _ballEnemy = true;
@@ -162,8 +168,7 @@ public class PlayerController : MonoBehaviour
         {
             //start aiming
             power = 1;
-            _powerBarSpeed = 1 + Random.Range(1, 6) / 10f;
-            Debug.Log(_powerBarSpeed);
+            _powerBarSpeed = 1 + Random.Range(2, 6) / 10f;
             _powerIncreasing = true;
             _powerBarON = true;
             powerBar.SetActive(true);

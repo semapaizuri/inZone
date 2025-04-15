@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.IntegerTime;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class roundSystem : MonoBehaviour
 {
@@ -12,26 +14,38 @@ public class roundSystem : MonoBehaviour
     [SerializeField] private Transform _attPos;
     [SerializeField] private Transform _defPos;
     [Space(20)]
-    [SerializeField] private GameObject _countDownUI;
+    [SerializeField] private GameObject _endingCountDownUI;
     [SerializeField] private GameObject _mainCam;
     [SerializeField] private GameObject _checkCam;
     [SerializeField] private List<GameObject> _playerUIs;
-
-    [SerializeField] private TextMeshProUGUI _countDown;
+    [Space(20)]
+    [SerializeField] private TextMeshProUGUI _endingCountDown;
     [SerializeField] private TextMeshProUGUI _roundText;
+    [SerializeField] private TextMeshProUGUI _roundTimer;
     [Space(20)]
     [SerializeField] private float _timeAfterRound;
 
     private Canvas _uiCanv;
+    
+    private PlayerController _player1Script;
+    private PlayerController _player2Script;
 
     private int _round = 1;
     private static int _winner = 1;
-    private float _timerRemain;
+    private float _endingTimerRemain;
+    private float _roundTimerRemain;
     
     public static int Winner { set => _winner = value; }
     public static bool RoundEnd { get; set; }
     public static bool IsCheck { get; set; }
     public static bool Checked { get; set; }
+    public static bool TimeIsOut { get; set; }
+
+    private void Awake()
+    {
+        _player1Script = _player1.GetComponent<PlayerController>();
+        _player2Script = _player2.GetComponent<PlayerController>();
+    }
 
     private void Start()
     {
@@ -39,14 +53,14 @@ public class roundSystem : MonoBehaviour
         _player1.position = _attPos.position;
         _player2.position = _defPos.position;
         _ball.position = _attPos.position;
-        _timerRemain = _timeAfterRound;
+        _endingTimerRemain = _timeAfterRound;
     }
 
     void Update()
     {
-        if (RoundEnd == true)
+        if (RoundEnd)
         {
-            StartingRound();
+            EndingRound();
         }
 
         CameraSwitch();
@@ -74,13 +88,13 @@ public class roundSystem : MonoBehaviour
         }
     }
 
-    private void StartingRound()
+    private void EndingRound()
     {
-        _countDownUI.SetActive(true);
-        if (_timerRemain > 0f)
+        _endingCountDownUI.SetActive(true);
+        if (_endingTimerRemain > 0f)
         {
-            _timerRemain -= Time.deltaTime;
-            _countDown.text = _timerRemain.ToString("0.0");
+            _endingTimerRemain -= Time.deltaTime;
+            _endingCountDown.text = _endingTimerRemain.ToString("0.0");
         }
         else
         {
@@ -96,15 +110,34 @@ public class roundSystem : MonoBehaviour
                 _player2.position = _attPos.position;
             }
 
-            _player1.GetComponent<PlayerController>().BallOut();
-            _player2.GetComponent<PlayerController>().BallOut();
+            _player1Script.BallOut();
+            _player2Script.BallOut();
             _ball.position = _attPos.position;
 
-            _timerRemain = _timeAfterRound;
-            _countDownUI.SetActive(false);
+            _endingTimerRemain = _timeAfterRound;
+            _endingCountDownUI.SetActive(false);
             _round++;
             _roundText.text = _round.ToString();
             IsCheck = true;
+        }
+    }
+
+    private void StartRound()
+    {
+        _roundTimerRemain = 24;
+        Invoke(nameof(TimerTick), 1f);
+    }
+
+    private void TimerTick()
+    {
+        _roundTimerRemain--;
+        if (_roundTimerRemain > 0)
+        {
+            Invoke(nameof(TimerTick), 1f);
+        }
+        else
+        {
+            TimeIsOut = true;
         }
     }
 }
